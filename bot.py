@@ -1,38 +1,86 @@
+import os
+import io
+import math
+import requests
+from PIL import Image
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import matplotlib.pyplot as plt
-import io
 
-# Replace with your own script function
-def generate_topo_map(lat: float, lon: float) -> io.BytesIO:
-    fig = your_existing_map_function(lat, lon)  # Should return a matplotlib figure
+# --- Map Download Function ---
+
+def deg2num(lat_deg, lon_deg, zoom):
+    lat_rad = math.radians(lat_deg)
+    n = 2.0 ** zoom
+    x_tile = int((lon_deg + 180.0) / 360.0 * n)
+    y_tile = int((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
+    return x_tile, y_tile
+
+def download_map_image(lat, lon, zoom=15):
+    """
+    Download topographic map tile and return as BytesIO object.
+    """
+    x_tile, y_tile = deg2num(lat, lon, zoom)
+    url = f"https://tile.opentopomap.org/{zoom}/{x_tile}/{y_tile}.png"
+
+    response = requests.get(url)
+    response.raise_for_status()
+
+    image = Image.open(io.BytesIO(response.content))
+
     buf = io.BytesIO()
-    fig.savefig(buf, format='png')
+    image.save(buf, format='PNG')
     buf.seek(0)
-    plt.close(fig)
     return buf
 
+# --- Bot Handlers ---
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Send me latitude and longitude separated by a comma. For example: `32.0853, 34.7818`")
+    await update.message.reply_text(
+        "Hi! 👋 Send me latitude and longitude separated by a comma.\n"
+        "Example: `32.0853, 34.7818`\n"
+        "I'll send you a topographic map of that location!"
+    )
 
 async def handle_coords(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        # Parse coordinates
         lat_str, lon_str = update.message.text.split(',')
-        lat, lon = float(lat_str.strip()), float(lon_str.strip())
-        image_buffer = generate_topo_map(lat, lon)
+        lat = float(lat_str.strip())
+        lon = float(lon_str.strip())
+
+        # Download map
+        image_buffer = download_map_image(lat, lon)
+
+        # Send map image
         await update.message.reply_photo(photo=image_buffer)
+
+    except ValueError:
+        await update.message.reply_text(
+            "⚠️ Please send the coordinates in the correct format: `latitude, longitude`"
+        )
+    except requests.RequestException:
+        await update.message.reply_text(
+            "⚠️ Couldn't fetch the map. Server error. Try again later."
+        )
     except Exception as e:
-        await update.message.reply_text(f"Error: {e}\nPlease send coordinates like this: `latitude, longitude`")
+        await update.message.reply_text(f"⚠️ Error: {e}")
 
-if __name__ == '__main__':
-    import os
+# --- Main Application ---
 
-    TOKEN = "7643327737:AAHw8a2wxyQatDC0IOmrbrBtc5vxqN5R8Eg"
+def main():
+    TOKEN = os.getenv("BOT_TOKEN")
+    if not TOKEN:
+        print("❌ BOT_TOKEN environment variable not set!")
+        return
+
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_coords))
 
-    print("Bot is running...")
+    print("✅ Bot is running...")
     app.run_polling()
+
+if __name__ == "__main__":
+    main()
 
