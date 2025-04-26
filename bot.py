@@ -68,7 +68,7 @@ async def handle_coords(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- Main Application ---
 
 def main():
-    TOKEN = os.getenv("BOT_TOKEN")
+    TOKEN = os.getenv("7643327737:AAHw8a2wxyQatDC0IOmrbrBtc5vxqN5R8Eg")
     if not TOKEN:
         print("❌ BOT_TOKEN environment variable not set!")
         return
