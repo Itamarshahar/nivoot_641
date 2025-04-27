@@ -3,4 +3,3 @@ Pillow
 requests
 aiohttp
 asyncio
-PIL
