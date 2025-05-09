@@ -49,6 +49,7 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 def main():
     # Load the Telegram token from environment variable
     # Make sure to set this environment variable in your deployment environment
+    logging.INFO("Starting the bot")
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
     if not TELEGRAM_TOKEN:
