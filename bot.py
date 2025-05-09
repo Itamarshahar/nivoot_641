@@ -9,6 +9,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+logger = logging.getLogger(__name__)
 
 # --- Bot Handlers ---
 
@@ -41,7 +42,7 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_document(f)
 
     except Exception as e:
-        logging.exception("Error handling coordinates:")
+        logger.exception("Error handling coordinates:")
         await update.message.reply_text(f"Error: {str(e)}\nPlease send again in format:\nlat, lon, width, height")
 
 # --- Main Bot ---
@@ -49,7 +50,9 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 def main():
     # Load the Telegram token from environment variable
     # Make sure to set this environment variable in your deployment environment
-    logging.INFO("Starting the bot")
+
+    logger.info("=== Starting the bot ===")    
+    
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
     if not TELEGRAM_TOKEN:
