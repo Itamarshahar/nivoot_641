@@ -1,7 +1,7 @@
 import os
 import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 from saver import transform_coordinates, main as download_map
 
 # Setup logging
@@ -26,12 +26,14 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         if 'coords' not in context.user_data:
             parts = list(map(float, text.split(',')))
             if len(parts) != 2:
-                raise ValueError("Please send two numbers: latitude, longitude (WGS84)")
+                raise ValueError(
+                    "Please send two numbers: latitude, longitude (WGS84)")
 
             lat, lon = parts
             context.user_data['coords'] = {'lat': lat, 'lon': lon}
 
-            await update.message.reply_text("Great! Now send me two more numbers: width, height (meters)")
+            await update.message.reply_text(
+                "Great! Now send me two more numbers: width, height (meters)")
             return
 
         # Step 2: expecting width, height
@@ -43,7 +45,8 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         lat = context.user_data['coords']['lat']
         lon = context.user_data['coords']['lon']
 
-        await update.message.reply_text("Got it! Generating the map, please wait... (this might take ~10–20 seconds)")
+        await update.message.reply_text(
+            "Got it! Generating the map, please wait... (this might take ~10–20 seconds)")
 
         # Convert to tile coordinates
         x, y = transform_coordinates(longitude=lon, latitude=lat)
@@ -58,8 +61,10 @@ async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     except Exception as e:
         logger.exception("Error handling coordinates:")
-        await update.message.reply_text(f"Error: {str(e)}\nStep 1: Send lat, lon\nStep 2: Send width, height")
+        await update.message.reply_text(
+            f"Error: {str(e)}\nStep 1: Send lat, lon\nStep 2: Send width, height")
         context.user_data.clear()
+
 
 # --- Main Bot ---
 
@@ -68,7 +73,7 @@ def main():
     # Make sure to set this environment variable in your deployment environment
 
     logger.info("Starting the bot")
-    
+
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
     if not TELEGRAM_TOKEN:
@@ -76,10 +81,11 @@ def main():
 
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, coordinates_handler))
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, coordinates_handler))
 
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
