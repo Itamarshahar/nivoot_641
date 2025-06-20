@@ -18,8 +18,6 @@ async def start(update: Update):
         'Hi! Send me one coordinate pair and a size, like this:\n\nlat, lon, width, height\n\nExample:\n31.3257, 34.8332, 3500, 5500'
     )
 
-from telegram import Update
-from telegram.ext import ContextTypes
 
 async def coordinates_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -69,7 +67,7 @@ def main():
     # Load the Telegram token from environment variable
     # Make sure to set this environment variable in your deployment environment
 
-    logger.info("=== Starting the bot ===")    
+    logger.info("Starting the bot")
     
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
