@@ -42,7 +42,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
+      - name: Inject TELEGRAM_TOKEN into task definition
+        run: |
+          sed -i 's/REPLACE_TELEGRAM_TOKEN/${{ secrets.TELEGRAM_TOKEN }}/g' ${{ env.ECS_TASK_DEFINITION }}
       - name: Render new ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
