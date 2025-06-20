@@ -1,7 +1,8 @@
 import os
 import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, \
+    filters, CommandHandler
 from saver import transform_coordinates, main as download_map
 
 # Setup logging
@@ -80,12 +81,11 @@ def main():
         raise ValueError("No TELEGRAM_TOKEN environment variable set.")
 
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-
-    app.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, coordinates_handler))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, coordinates_handler))
 
     app.run_polling()
-
+    logger.info("Bot started successfully")
 
 if __name__ == "__main__":
     main()
